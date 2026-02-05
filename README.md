@@ -1,98 +1,171 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Job Matching Engine (NestJS + PostgreSQL)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A production-grade **Job Matching Engine POC** built with **NestJS**, **PostgreSQL**, **Prisma**, and **BullMQ**. The system asynchronously matches jobs with candidates at scale (10,000+), computes ranked results using pluggable scoring strategies, and exposes secure APIs.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 🚀 Features
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+* Async job–candidate matching using background workers
+* PostgreSQL with Prisma ORM
+* High-performance candidate filtering using GIN indexes
+* Batch processing & bulk upserts (idempotent)
+* Pluggable scoring strategies (Open/Closed principle)
+* Ranked match results with pagination
+* JWT-based authentication
+* Redis + BullMQ for queueing
+* Swagger API documentation
 
-## Project setup
+---
 
-```bash
-$ npm install
+## 🏗️ High-Level Architecture
+
+```
+Client
+  ↓
+REST APIs (NestJS)
+  ↓            ↘
+PostgreSQL      Redis (BullMQ)
+                   ↓
+            Background Worker
+                   ↓
+            Match Results Store
 ```
 
-## Compile and run the project
+* **API Layer**: Stateless, authenticated, fast
+* **Worker Layer**: Asynchronous, fault-tolerant, scalable
+
+---
+
+## 🧰 Tech Stack
+
+* **Backend**: NestJS (TypeScript)
+* **Database**: PostgreSQL
+* **ORM**: Prisma
+* **Queue**: BullMQ
+* **Cache/Broker**: Redis
+* **Auth**: JWT (Passport)
+* **Validation**: class-validator, class-transformer
+* **Docs**: Swagger
+
+---
+## 🔐 Authentication
+
+* JWT-based authentication
+* Stateless API layer
+* Worker does not require auth (internal system)
+
+### Auth APIs
+
+* `POST /auth/register`
+* `POST /auth/login`
+
+Protected routes:
+
+* `POST /jobs`
+* `POST /jobs/:id/match`
+* `GET /jobs/:id/matches`
+* `GET /jobs/:id/matches/ranked`
+
+---
+
+## 🌐 API Endpoints
+
+### Job APIs
+
+* `POST /jobs` – Create job & enqueue matching
+* `POST /jobs/:id/match` – Re-trigger matching
+* `GET /jobs/:id/matches` – Get all matches
+* `GET /jobs/:id/matches/ranked` – Ranked matches with pagination
+
+---
+
+## 🧪 Seeding Data
+
+Seed 10,000 candidates for testing:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npx ts-node seed/seed-candidates.ts
 ```
 
-## Run tests
+The seed script uses batch inserts for performance.
+
+---
+
+## 🐳 Running Locally (Docker)
+
+### Start Infrastructure
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+docker compose up -d
 ```
 
-## Deployment
+Services:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+* PostgreSQL → `localhost:5432`
+* Redis → `localhost:6380`
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+---
+
+## ▶️ Running the Application
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm install
+npx prisma migrate dev
+npm run start:dev
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Swagger UI:
 
-## Resources
+```
+http://localhost:3000/api
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## 📈 Performance Considerations
 
-## Support
+* GIN indexes on array fields
+* Cursor-based pagination (no OFFSET)
+* Batch size = 500
+* Bulk upserts using `ON CONFLICT`
+* Stateless APIs
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
 
-## Stay in touch
+## 🔁 Reliability & Error Handling
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+* Automatic retries with exponential backoff
+* Partial failures do not stop processing
+* Invalid records are skipped
+* Idempotent re-processing supported
 
-## License
+---
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## 🔮 Future Enhancements
+
+* ElasticSearch candidate selector
+* ML-based scoring strategies
+* Role-based access control
+* Multi-tenant support
+* Metrics (Prometheus / OpenTelemetry)
+
+---
+
+## 📌 Summary
+
+This project demonstrates:
+
+* Clean, modular backend architecture
+* Asynchronous, scalable processing
+* High-performance PostgreSQL usage
+* Extensible scoring system
+* Production-ready design patterns
+
+It can serve as a strong foundation for real-world hiring or recommendation platforms.
+
+---
+
+## 👨‍💻 Author
+
+Built as a production-quality POC to demonstrate scalable backend system design using NestJS.
