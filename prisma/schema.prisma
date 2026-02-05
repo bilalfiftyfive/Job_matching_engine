@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Job {
+  id             String   @id @default(uuid())
+  title          String
+  requiredSkills String[] @db.Text
+  minExperience  Int
+  location       String
+  createdAt      DateTime @default(now())
+
+  matches        MatchResult[]
+
+  @@index([location])
+  @@index([requiredSkills], type: Gin)
+}
+
+model Candidate {
+  id              String   @id @default(uuid())
+  skills          String[] @db.Text
+  experienceYears Int
+  location        String
+  updatedAt       DateTime @updatedAt
+
+  matches         MatchResult[]
+
+  @@index([skills], type: Gin)
+  @@index([experienceYears])
+  @@index([location])
+}
+
+model MatchResult {
+  id             String   @id @default(uuid())
+  jobId          String
+  candidateId    String
+  score          Float
+  scoreBreakdown Json
+  version        Int
+  computedAt     DateTime
+
+  job        Job        @relation(fields: [jobId], references: [id])
+  candidate  Candidate @relation(fields: [candidateId], references: [id])
+
+  @@unique([jobId, candidateId])
+  @@index([jobId, score(sort: Desc)])
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+}
