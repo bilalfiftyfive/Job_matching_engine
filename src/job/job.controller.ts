@@ -25,7 +25,6 @@ export class JobController {
   @Post()
   async create(@Body() dto: CreateJobDto) {
     const job = await this.jobService.create(dto);
-    await this.queue.enqueue(job.id);
     return job;
   }
 
