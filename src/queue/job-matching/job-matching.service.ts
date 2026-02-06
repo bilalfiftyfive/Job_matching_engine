@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import type { MatchJobData } from './job-matching.types';
 
 @Injectable()
 export class JobMatchingService {
-  constructor(@InjectQueue('job-matching') private readonly queue: Queue) {}
+  constructor(
+    @InjectQueue('job-matching') private readonly queue: Queue<MatchJobData>,
+  ) {}
 
   async enqueue(jobId: string, version = 1) {
     await this.queue.add(

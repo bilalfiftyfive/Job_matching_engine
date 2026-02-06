@@ -10,12 +10,16 @@ if (!connectionString) {
   throw new Error('DATABASE_URL is not set');
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 const pool = new Pool({ connectionString });
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
 const prisma = new PrismaClient({ adapter: new PrismaPg(pool) });
 
-const skillsPool = ['node', 'java', 'react', 'sql', 'aws'];
+const skillsPool = ['node', 'java', 'react', 'sql', 'aws'] as const;
+type Skill = (typeof skillsPool)[number];
+type CandidateSeed = {
+  skills: Skill[];
+  experienceYears: number;
+  location: string;
+};
 
 async function seed() {
   console.log('🌱 Seeding candidates...');
@@ -24,14 +28,13 @@ async function seed() {
   const TOTAL = 10_000;
 
   for (let i = 0; i < TOTAL; i += BATCH_SIZE) {
-    const batch = Array.from({ length: BATCH_SIZE }).map(() => ({
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      skills: faker.helpers.arrayElements(skillsPool, 3),
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      experienceYears: faker.number.int({ min: 0, max: 15 }),
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      location: faker.location.city(),
-    }));
+    const batch: CandidateSeed[] = Array.from({ length: BATCH_SIZE }).map(
+      () => ({
+        skills: faker.helpers.arrayElements(skillsPool, 3),
+        experienceYears: faker.number.int({ min: 0, max: 15 }),
+        location: faker.location.city(),
+      }),
+    );
 
     await prisma.candidate.createMany({
       data: batch,
@@ -51,6 +54,5 @@ seed()
   })
   .finally(async () => {
     await prisma.$disconnect();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     await pool.end();
   });

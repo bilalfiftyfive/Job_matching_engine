@@ -5,6 +5,7 @@ import {
   Param,
   Post,
   Query,
+  ParseUUIDPipe,
   UseGuards,
 } from '@nestjs/common';
 import { JobService } from './job.service';
@@ -29,17 +30,20 @@ export class JobController {
   }
 
   @Post(':id/match')
-  async trigger(@Param('id') id: string) {
+  async trigger(@Param('id', new ParseUUIDPipe()) id: string) {
     await this.queue.enqueue(id);
     return { status: 'queued' };
   }
   @Get(':id/matches')
-  async matches(@Param('id') jobId: string) {
+  async matches(@Param('id', new ParseUUIDPipe()) jobId: string) {
     return this.jobService.getMatches(jobId);
   }
 
   @Get(':id/matches/ranked')
-  async ranked(@Param('id') jobId: string, @Query() pagination: PaginationDto) {
+  async ranked(
+    @Param('id', new ParseUUIDPipe()) jobId: string,
+    @Query() pagination: PaginationDto,
+  ) {
     const page = pagination.page ?? 1;
     const limit = pagination.limit ?? 20;
 

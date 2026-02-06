@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import type { Candidate, Job } from '@prisma/client';
 import { CandidateSelector } from './candidate-selector.interface';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -9,16 +10,11 @@ export class PostgresCandidateSelector implements CandidateSelector {
 
   constructor(private prisma: PrismaService) {}
 
-  async *selectCandidates(job) {
-    const requiredSkills = Array.isArray(job?.requiredSkills)
-      ? // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        job.requiredSkills.map((skill: string) => skill.toLowerCase())
-      : [];
-    const minExperienceRaw = job?.minExperience;
-    const minExperience =
-      typeof minExperienceRaw === 'number'
-        ? minExperienceRaw
-        : Number(minExperienceRaw) || 0;
+  async *selectCandidates(job: Job): AsyncIterable<Candidate> {
+    const requiredSkills = job.requiredSkills.map((skill) =>
+      skill.toLowerCase(),
+    );
+    const minExperience = job.minExperience;
 
     let cursor: string | undefined;
     let batchIndex = 0;
@@ -28,7 +24,7 @@ export class PostgresCandidateSelector implements CandidateSelector {
       this.logger.log(
         `Fetching batch ${batchIndex} (cursor=${cursor ?? 'none'})`,
       );
-      const batch = await this.prisma.candidate.findMany({
+      const batch: Candidate[] = await this.prisma.candidate.findMany({
         where: {
           experienceYears: { gte: minExperience },
           ...(requiredSkills.length

@@ -8,6 +8,11 @@ import {
   Min,
 } from 'class-validator';
 
+const normalizeSkills = (value: unknown): unknown => {
+  if (!Array.isArray(value)) return value;
+  return value.map((skill) => String(skill).toLowerCase());
+};
+
 export class CreateJobDto {
   @IsString()
   title: string;
@@ -16,10 +21,10 @@ export class CreateJobDto {
   @IsString({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(20)
-  @Transform(({ value }) =>
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    Array.isArray(value) ? value.map((skill) => skill.toLowerCase()) : value,
-  )
+  @Transform(({ value }) => {
+    const raw = value as unknown;
+    return normalizeSkills(raw);
+  })
   requiredSkills: string[];
 
   @Type(() => Number)
