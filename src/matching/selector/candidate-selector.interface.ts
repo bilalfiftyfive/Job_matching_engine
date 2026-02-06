@@ -1,3 +1,5 @@
+import type { Candidate, Job } from '@prisma/client';
+
 export interface CandidateSelector {
-  selectCandidates(job): AsyncIterable<any>;
+  selectCandidates(job: Job): AsyncIterable<Candidate>;
 }

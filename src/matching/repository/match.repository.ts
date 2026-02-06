@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-base-to-string */
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
+import type { MatchUpsertRecord } from './match.types';
 
 @Injectable()
 export class MatchRepository {
@@ -10,16 +10,7 @@ export class MatchRepository {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async bulkUpsert(
-    records: {
-      jobId: string;
-      candidateId: string;
-      score: number;
-      scoreBreakdown: Record<string, number>;
-      version: number;
-      computedAt: Date;
-    }[],
-  ) {
+  async bulkUpsert(records: MatchUpsertRecord[]) {
     if (!records.length) return;
     this.logger.log(`Upserting ${records.length} match results`);
 

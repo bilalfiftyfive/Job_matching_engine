@@ -1,12 +1,12 @@
 // matching/scoring/location.strategy.ts
 import { Injectable } from '@nestjs/common';
-import { ScoringStrategy } from './scoring-strategy.interface';
+import type { Candidate, Job } from '@prisma/client';
+import { ScoringStrategy, ScoringResult } from './scoring-strategy.interface';
 
 @Injectable()
 export class LocationStrategy implements ScoringStrategy {
-  score(candidate, job) {
+  score(candidate: Candidate, job: Job): ScoringResult {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       value: candidate.location === job.location ? 1 : 0,
       reason: 'location',
     };
