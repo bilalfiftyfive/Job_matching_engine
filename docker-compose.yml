@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:14
-    container_name: backend-postgres
+    container_name: backenddb-postgres
     environment:
       POSTGRES_DB: job_matching
       POSTGRES_USER: postgres
@@ -13,7 +13,7 @@ services:
 
   redis:
     image: redis:7
-    container_name: backend-redis
+    container_name: backendserver-redis
     ports:
       - "6380:6379"
 

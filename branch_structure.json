@@ -1,0 +1,21 @@
+{
+  "default_branch": "main",
+  "branches": [
+    "feature/addeventlistner",
+    "feature/initialCommit",
+    "fix/lintissue",
+    "main"
+  ],
+  "parent": {
+    "feature/addeventlistner": "main",
+    "feature/initialCommit": "main",
+    "fix/lintissue": "main",
+    "main": null
+  },
+  "order": [
+    "main",
+    "feature/addeventlistner",
+    "feature/initialCommit",
+    "fix/lintissue"
+  ]
+}
