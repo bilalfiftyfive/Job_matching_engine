@@ -1,13 +1,20 @@
 import { Injectable } from '@nestjs/common';
+import { EventEmitter2 } from 'eventemitter2';
 import { CreateJobDto } from './dto/create-job.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { JOB_CREATED_EVENT } from './job.events';
 
 @Injectable()
 export class JobService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private events: EventEmitter2,
+  ) {}
 
-  create(dto: CreateJobDto) {
-    return this.prisma.job.create({ data: dto });
+  async create(dto: CreateJobDto) {
+    const job = await this.prisma.job.create({ data: dto });
+    this.events.emit(JOB_CREATED_EVENT, { jobId: job.id });
+    return job;
   }
 
   findById(id: string) {
